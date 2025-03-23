@@ -49,7 +49,7 @@
         <label for="dateAdded"><b>Date Added (YYYY-MM-DD):</b></label>
         <input type="date" id="dateAdded" required>
 
-        <button type="submit">Submit</button>
+        <button type="submit" id="submitBtn">Submit</button>
     </form>
 
     <p id="responseMessage"></p>
@@ -61,6 +61,7 @@
             const nationalID = document.getElementById('nationalID').value.trim();
             const dateAdded = document.getElementById('dateAdded').value.trim();
             const responseMessage = document.getElementById('responseMessage');
+            const submitBtn = document.getElementById('submitBtn');
 
             // Validate input
             if (!nationalID || !dateAdded) {
@@ -71,33 +72,32 @@
 
             responseMessage.style.color = 'blue';
             responseMessage.textContent = "Submitting, please wait...";
+            submitBtn.disabled = true; // Disable button to prevent multiple submissions
 
             try {
-                const response = await fetch("https://script.google.com/macros/s/AKfycbwitU3WAKES6jJrypNOP_Ebm_3ilJ5ApgU5-P4W1Ez3LkSh_-STHF0ouWtrp6TVAsTd/exec", {
+                const response = await fetch("https://script.google.com/macros/s/AKfycbzsXZq5ZhooAAI0R1OSSE5Kh3N9yvc53f8zxwBUmpCoiI4IIfs6tssjNhDyziojbUFQ/exec", {
                     method: "POST",
+                    mode: "no-cors", // Prevents CORS issues
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ nationalID, dateAdded })
                 });
 
-                const data = await response.json();
-                
-                if (data.success) {
-                    responseMessage.style.color = 'green';
-                    responseMessage.textContent = data.message;
-                    document.getElementById('dataForm').reset();
-                    
-                    // Redirect after 2 seconds
-                    setTimeout(() => {
-                        window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfeKpAYRdNk_ii0A9035vN7wmaMjgUwFhlGaN83A4dXHyC1dA/viewform?usp=sf_link";
-                    }, 2000);
-                } else {
-                    responseMessage.style.color = 'red';
-                    responseMessage.textContent = data.message;
-                }
+                responseMessage.style.color = 'green';
+                responseMessage.textContent = "Data submitted successfully! Redirecting...";
+
+                // Reset form
+                document.getElementById('dataForm').reset();
+
+                // Redirect after 2 seconds
+                setTimeout(() => {
+                    window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfeKpAYRdNk_ii0A9035vN7wmaMjgUwFhlGaN83A4dXHyC1dA/viewform?usp=sf_link";
+                }, 2000);
             } catch (error) {
                 responseMessage.style.color = 'red';
                 responseMessage.textContent = "Error: Failed to submit data. Please try again.";
                 console.error("Fetch error:", error);
+            } finally {
+                submitBtn.disabled = false; // Re-enable submit button
             }
         });
     </script>

@@ -3,114 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pen Number Submission</title>
+    <title>Submit Data</title>
     <style>
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            height: 100vh;
-            margin: 0;
             font-family: Arial, sans-serif;
             text-align: center;
+            margin-top: 50px;
         }
-
-        h1 {
-            color: darkgreen;
-        }
-
-        button {
-            margin-top: 10px;
-            background-color: red;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: darkred;
-        }
-
-        #congratsMessage {
-            display: none;
-            background-color: #d4edda;
-            color: #155724;
+        form {
+            max-width: 400px;
+            margin: 0 auto;
             padding: 20px;
-            border: 1px solid #c3e6cb;
-            margin-top: 20px;
-            border-radius: 5px;
-            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
-        #congratsMessage button {
+        input, button {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+        }
+        button {
             background-color: green;
             color: white;
+            font-weight: bold;
             border: none;
-            padding: 10px 20px;
-            font-size: 16px;
+            border-radius: 5px;
             cursor: pointer;
-            margin-top: 15px;
         }
-
-        #congratsMessage button:hover {
+        button:hover {
             background-color: darkgreen;
         }
-
-        #errorMessage {
-            color: red;
-            font-weight: bold;
-        }
     </style>
-    <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwt2urWS7RkcPOcAbTef_Hz3-MvmxsnWAr84DfeTAkK2n-LP-voMSwYFaSDAZ4cBQ8sCQ/exec';
-
-        async function checkPenNumber(event) {
-            event.preventDefault();
-
-            const penNumber = document.getElementById("pen_number").value.trim();
-
-            const response = await fetch(APPS_SCRIPT_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ penNumber })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                document.getElementById("congratsMessage").style.display = "block";
-                document.getElementById("errorMessage").textContent = "";
-            } else {
-                document.getElementById("errorMessage").textContent = result.message;
-                document.getElementById("congratsMessage").style.display = "none";
-            }
-        }
-    </script>
 </head>
 <body>
-    <div id="logo">
-        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgTmvbQ8PO3QEmNBLuNDGJsOEha8rictP5-rmbG0qYp5qQe3QMEhoogK84OdxPgNB5iwytY-lpQT7E7AY4kpvmMGqK6CUrAHaXXhOj7CjXvKSu71HjYyy9NQ_Oh4CuCC_l97lDW3A9HF2eU670xt5mv83zx2OqCG_Is4zPpdYJ4JUaM14-2AZyEXOBktJE/w92-h84/logo.png" alt="Logo">
-    </div>
+    <h2>Submit Data</h2>
+    <form id="dataForm">
+        <label for="nationalID"><b>National ID No:</b></label>
+        <input type="text" id="nationalID" required>
 
-    <div class="container">
-        <h1>Enter Your Number</h1>
-        <form onsubmit="checkPenNumber(event)">
-            <label for="pen_number">Number:</label>
-            <input type="text" id="pen_number" name="pen_number" required>
-            <br>
-            <button type="submit">Submit</button>
-        </form>
-        <p id="errorMessage"></p>
+        <label for="dateAdded"><b>Date Added (YYYY-MM-DD):</b></label>
+        <input type="date" id="dateAdded" required>
 
-        <div id="congratsMessage">
-            <h2>Congrats! Your Number is available!</h2>
-            <button onclick="window.location.href='https://sites.google.com/view/add-user-id/home'">Submit</button>
-        </div>
-    </div>
+        <button type="submit">Submit</button>
+    </form>
+
+    <p id="responseMessage"></p>
+
+    <script>
+        document.getElementById('dataForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const nationalID = document.getElementById('nationalID').value;
+            const dateAdded = document.getElementById('dateAdded').value;
+
+            fetch("https://script.google.com/macros/s/AKfycbwitU3WAKES6jJrypNOP_Ebm_3ilJ5ApgU5-P4W1Ez3LkSh_-STHF0ouWtrp6TVAsTd/exec", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nationalID, dateAdded })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const msg = document.getElementById('responseMessage');
+                if (data.success) {
+                    msg.style.color = 'green';
+                    msg.textContent = data.message;
+                    document.getElementById('dataForm').reset();
+                    
+                    // Redirect to Google Form after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfeKpAYRdNk_ii0A9035vN7wmaMjgUwFhlGaN83A4dXHyC1dA/viewform?usp=sf_link";
+                    }, 2000);
+                } else {
+                    msg.style.color = 'red';
+                    msg.textContent = data.message;
+                }
+            })
+            .catch(error => {
+                document.getElementById('responseMessage').style.color = 'red';
+                document.getElementById('responseMessage').textContent = "Error: " + error.message;
+            });
+        });
+    </script>
 </body>
 </html>
